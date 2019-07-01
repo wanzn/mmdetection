@@ -2,7 +2,7 @@ import mmcv
 from torch import nn
 
 from .registry import (BACKBONES, NECKS, ROI_EXTRACTORS, SHARED_HEADS, HEADS,
-                       LOSSES, DETECTORS)
+                       LOSSES, DETECTORS, DECODER)
 
 
 def _build_module(cfg, registry, default_args):
@@ -58,3 +58,7 @@ def build_loss(cfg):
 
 def build_detector(cfg, train_cfg=None, test_cfg=None):
     return build(cfg, DETECTORS, dict(train_cfg=train_cfg, test_cfg=test_cfg))
+
+
+def build_decoder(cfg):
+    return build(cfg, DECODER)

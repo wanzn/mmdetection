@@ -8,6 +8,7 @@ from .balanced_l1_loss import balanced_l1_loss, BalancedL1Loss
 from .mse_loss import mse_loss, MSELoss
 from .iou_loss import iou_loss, bounded_iou_loss, IoULoss, BoundedIoULoss
 from .utils import reduce_loss, weight_reduce_loss, weighted_loss
+from .lovasz_losses import *  # noqa: F401,F403
 
 __all__ = [
     'accuracy', 'Accuracy', 'cross_entropy', 'binary_cross_entropy',
