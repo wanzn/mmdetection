@@ -404,6 +404,7 @@ class ResNet(nn.Module):
         if dcn is not None:
             assert len(stage_with_dcn) == num_stages
         self.gen_attention = gen_attention
+        self.stage_with_gen_attention = stage_with_gen_attention
         self.gcb = gcb
         self.stage_with_gcb = stage_with_gcb
         if gcb is not None:
