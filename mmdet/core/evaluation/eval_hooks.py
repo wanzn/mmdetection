@@ -163,3 +163,32 @@ class CocoDistEvalmAPHook(DistEvalHook):
         runner.log_buffer.ready = True
         for res_type in res_types:
             os.remove(result_files[res_type])
+
+
+class SegDistEvalmIoUHoop(DistEvalHook):
+
+    def evaluate(self, runner, results):
+        gt_mask = []
+        for i in range(len(self.dataset)):
+            mask = self.datasets.get_ann_mask(i)
+            gt_mask.append(mask)
+        ious = []
+        for pred, label in zip(results, gt_mask):
+            ious.append(np.nanmean(self._computer_iou(pred, label)))
+        mean_iou = np.nanmean(ious)
+        runner.log_buffer.output['miou'] = mean_iou
+        runner.log_buffer.ready = True
+
+    def _computer_iou(pred, label, classes=[1, 2, 3]):
+        ious = []
+        for c in classes:
+            label_c = label == c
+            if np.sum(label_c) == 0:
+                ious.append(np.nan)
+                continue
+            pred_c = pred == c
+            intersection = np.logical_and(pred_c, label_c).sum()
+            union = np.logical_or(pred_c, label_c).sum()
+        if union != 0:
+            ious.append(intersection / union)
+        return ious if ious else [1]
