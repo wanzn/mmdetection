@@ -170,7 +170,7 @@ class SegDistEvalmIoUHoop(DistEvalHook):
     def evaluate(self, runner, results):
         gt_mask = []
         for i in range(len(self.dataset)):
-            mask = self.datasets.get_ann_mask(i)
+            mask = self.dataset.get_ann_mask(i)
             gt_mask.append(mask)
         ious = []
         for pred, label in zip(results, gt_mask):

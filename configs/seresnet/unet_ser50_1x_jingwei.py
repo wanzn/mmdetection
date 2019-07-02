@@ -69,7 +69,7 @@ test_cfg = dict(
 )
 # dataset settings
 dataset_type = 'JingweiDataset'
-data_root = 'data/jingwei/'
+data_root = 'data/'
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
 data = dict(
@@ -83,7 +83,7 @@ data = dict(
         img_norm_cfg=img_norm_cfg,
         size_divisor=32,
         flip_ratio=0.5,
-        ann_file='data/jingwei/jingwei_round1_train_20190619/crop_label'),
+        ann_file='data/jingwei_round1_train_20190619/crop_label'),
     val=dict(
         type=dataset_type,
         img_prefix=data_root + 'jingwei_round1_train_20190619/crop',
@@ -92,7 +92,8 @@ data = dict(
         img_norm_cfg=img_norm_cfg,
         size_divisor=32,
         flip_ratio=0,
-        ann_file='data/jingwei/jingwei_round1_train_20190619/crop_label'),
+        val_mode=True,
+        ann_file='data/jingwei_round1_train_20190619/crop_label'),
     test=dict(
         type=dataset_type,
         img_prefix=data_root + 'jingwei_round1_test_a_20190619/crop/image',

@@ -30,6 +30,7 @@ class JingweiDataset(Dataset):
                  extra_aug=None,
                  resize_keep_ratio=True,
                  test_mode=False,
+                 val_mode=False,
                  proposal_file=None):
         self.img_prefix = img_prefix
         self.num_classes = len(self.CLASSES) + 1
@@ -37,6 +38,9 @@ class JingweiDataset(Dataset):
         if not test_mode:
             # self.label_path = img_prefix + '/crop_label'
 
+            with open(osp.join(img_prefix, '..', split_file)) as f:
+                self.img_infos = f.read().splitlines()
+        elif val_mode:
             with open(osp.join(img_prefix, '..', split_file)) as f:
                 self.img_infos = f.read().splitlines()
         else:
@@ -162,11 +166,12 @@ class JingweiDataset(Dataset):
         img = mmcv.imread(osp.join(self.img_prefix, img_info))
 
         def prepare_single(img, scale, flip):
+            ori_shape = (img.shape[0], img.shape[1], 3)
             _img, img_shape, pad_shape, scale_factor = self.img_transform(
                 img, scale, flip, keep_ratio=self.resize_keep_ratio)
             _img = to_tensor(_img)
             _img_meta = dict(
-                ori_shape=(img_info['height'], img_info['width'], 3),
+                ori_shape=ori_shape,
                 img_shape=img_shape,
                 pad_shape=pad_shape,
                 scale_factor=scale_factor,
