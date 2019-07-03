@@ -3,10 +3,12 @@ import os
 import os.path as osp
 import shutil
 import tempfile
+import numpy as np
 
 import mmcv
 import torch
 import torch.distributed as dist
+from PIL import Image
 from mmcv.runner import load_checkpoint, get_dist_info
 from mmcv.parallel import MMDataParallel, MMDistributedDataParallel
 
@@ -14,6 +16,7 @@ from mmdet.apis import init_dist
 from mmdet.core import results2json, coco_eval
 from mmdet.datasets import build_dataloader, get_dataset
 from mmdet.models import build_detector
+os.environ["CUDA_VISIBLE_DEVICES"] = "4,5,6,7"
 
 
 def single_gpu_test(model, data_loader, show=False):
@@ -172,28 +175,27 @@ def main():
         model = MMDistributedDataParallel(model.cuda())
         outputs = multi_gpu_test(model, data_loader, args.tmpdir)
 
-    rank, _ = get_dist_info()
-    if args.out and rank == 0:
-        print('\nwriting results to {}'.format(args.out))
-        mmcv.dump(outputs, args.out)
-        eval_types = args.eval
-        if eval_types:
-            print('Starting evaluate {}'.format(' and '.join(eval_types)))
-            if eval_types == ['proposal_fast']:
-                result_file = args.out
-                coco_eval(result_file, eval_types, dataset.coco)
-            else:
-                if not isinstance(outputs[0], dict):
-                    result_files = results2json(dataset, outputs, args.out)
-                    coco_eval(result_files, eval_types, dataset.coco)
-                else:
-                    for name in outputs[0]:
-                        print('\nEvaluating {}'.format(name))
-                        outputs_ = [out[name] for out in outputs]
-                        result_file = args.out + '.{}'.format(name)
-                        result_files = results2json(dataset, outputs_,
-                                                    result_file)
-                        coco_eval(result_files, eval_types, dataset.coco)
+    image_3_predict = np.zeros((19903, 37241))
+    image_4_predict = np.zeros((28832, 25936))
+    img_ids = dataset.img_infos
+    for image_id, labels in zip(img_ids, outputs):
+        labels = labels.squeeze(0).cpu().numpy()
+
+        image_id = image_id.split('.')[0]
+        image_id = image_id.split('_')
+        x, y = int(image_id[2]), int(image_id[3])
+        if image_id[1] == '3':
+            image_3_predict[x:x + 512, y:y + 512] = labels
+        elif image_id[1] == '4':
+            image_4_predict[x:x + 512, y:y + 512] = labels
+    image_3_predict = image_3_predict.astype(np.uint8)
+    image_4_predict = image_4_predict.astype(np.uint8)
+
+    image_3_predict = Image.fromarray(image_3_predict)
+    image_4_predict = Image.fromarray(image_4_predict)
+
+    image_3_predict.save('submit/image_3_predict.png')
+    image_4_predict.save('submit/image_4_predict.png')
 
 
 if __name__ == '__main__':

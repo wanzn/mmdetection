@@ -138,6 +138,7 @@ class SEResNext(ResNeXt):
 
     def __init__(self, reduction=16, **kwargs):
         super(SEResNext, self).__init__(**kwargs)
+        self.inplanes = 64
         self.res_layers = []
         for i, num_blocks in enumerate(self.stage_blocks):
             stride = self.strides[i]

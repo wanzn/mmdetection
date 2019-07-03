@@ -10,6 +10,7 @@ from mmdet.apis import (train_detector, init_dist, get_root_logger,
                         set_random_seed)
 from mmdet.models import build_detector
 import torch
+os.environ["CUDA_VISIBLE_DEVICES"] = "4,5,6,7"
 
 
 def parse_args():

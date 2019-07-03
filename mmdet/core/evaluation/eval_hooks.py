@@ -174,21 +174,26 @@ class SegDistEvalmIoUHoop(DistEvalHook):
             gt_mask.append(mask)
         ious = []
         for pred, label in zip(results, gt_mask):
-            ious.append(np.nanmean(self._computer_iou(pred, label)))
-        mean_iou = np.nanmean(ious)
+            ious.append(self._computer_iou(pred, label))
+        final_ious = []
+        for i in range(len(ious[0])):
+            _all_intersection = 0
+            _all_union = 0
+            for j in range(len(ious)):
+                _all_intersection += ious[j][i][0]
+                _all_union += ious[j][i][1]
+            final_ious.append(float(_all_intersection) / float(_all_union))
+        mean_iou = np.nanmean(final_ious)
         runner.log_buffer.output['miou'] = mean_iou
         runner.log_buffer.ready = True
 
-    def _computer_iou(pred, label, classes=[1, 2, 3]):
+    def _computer_iou(self, pred, label, classes=[1, 2, 3]):
+        pred = pred.squeeze()
         ious = []
         for c in classes:
             label_c = label == c
-            if np.sum(label_c) == 0:
-                ious.append(np.nan)
-                continue
             pred_c = pred == c
-            intersection = np.logical_and(pred_c, label_c).sum()
-            union = np.logical_or(pred_c, label_c).sum()
-        if union != 0:
-            ious.append(intersection / union)
-        return ious if ious else [1]
+            intersection = np.logical_and(pred_c.cpu(), label_c).sum()
+            union = np.logical_or(pred_c.cpu(), label_c).sum()
+            ious.append((intersection, union))
+        return ious

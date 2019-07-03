@@ -1,10 +1,12 @@
 # model settings
 model = dict(
     type='UNet',
-    pretrained='open-mmlab://se_resnet50',
+    pretrained='open-mmlab://se_resnext101_32x4d',
     backbone=dict(
-        type='SEResNet',
-        depth=50,
+        type='SEResNext',
+        depth=101,
+        groups=32,
+        base_width=4,
         num_stages=4,
         out_indices=(0, 1, 2, 3),
         frozen_stages=1,
@@ -104,24 +106,29 @@ data = dict(
         test_mode=True,
         ann_file='data/jingwei_round1_train_20190619/label'))
 # optimizer
-optimizer = dict(type='SGD', lr=0.01, momentum=0.9, weight_decay=0.0001)
+optimizer = dict(type='SGD', lr=0.02, momentum=0.9, weight_decay=0.0001)
 optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
 # learning policy
-lr_config = dict(policy='step', step=[9])  # actual epoch = 3 * 3 = 9
+lr_config = dict(
+    policy='step',
+    warmup='linear',
+    warmup_iters=500,
+    warmup_ratio=1.0 / 3,
+    step=[8, 11])
 checkpoint_config = dict(interval=1)
 # yapf:disable
 log_config = dict(
-    interval=50,
+    interval=100,
     hooks=[
         dict(type='TextLoggerHook'),
         # dict(type='TensorboardLoggerHook')
     ])
 # yapf:enable
 # runtime settings
-total_epochs = 12  # actual epoch = 4 * 3 = 12
+total_epochs = 15  # actual epoch = 4 * 3 = 12
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/unet_r50_fpn_1x_jingwei'
+work_dir = './work_dirs/unet_x101_fpn_1x_jingwei_all'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]

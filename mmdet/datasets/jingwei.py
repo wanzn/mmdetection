@@ -7,9 +7,9 @@ import cv2 as cv
 from mmcv.parallel import DataContainer as DC
 from torch.utils.data import Dataset
 
-from mmdet.datasets.transforms import ImageTransform, SegMapTransform, Numpy2Tensor
-from mmdet.datasets.utils import to_tensor, random_scale
-from mmdet.datasets.extra_aug import ExtraAugmentation
+from .transforms import ImageTransform, SegMapTransform, Numpy2Tensor
+from .utils import to_tensor, random_scale
+from .extra_aug import ExtraAugmentation
 
 
 class JingweiDataset(Dataset):
@@ -18,9 +18,9 @@ class JingweiDataset(Dataset):
 
     def __init__(self,
                  img_prefix,
-                 split_file,
                  img_scale,
                  img_norm_cfg,
+                 split_file=None,
                  multiscale_mode='value',
                  size_divisor=None,
                  flip_ratio=0,
@@ -112,8 +112,8 @@ class JingweiDataset(Dataset):
 
     def get_ann_mask(self, idx):
         img_info = self.img_infos[idx]
-        label_path = os.path.join(self.seg_prefix, img_info)
-        label_img = cv.imread(label_path, flag='unchanged')
+        label_path = os.path.join(self.ann_file, img_info)
+        label_img = cv.imread(label_path, 0)
 
         return label_img
 
@@ -193,19 +193,18 @@ class JingweiDataset(Dataset):
 
 
 if __name__ == "__main__":
-    data = JingweiDataset(img_prefix='data/jingwei/jingwei_round1_train_20190619/crop',
-                          split_file='split_train.txt',
+    data = JingweiDataset(img_prefix='data/jingwei_round1_train_20190619/image',
+                          split_file='mix_train.txt',
                           img_scale=(512, 512),
-                          img_norm_cfg=dict(
-    mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True),
-                        multiscale_mode='value',
-                        size_divisor=None,
-                        flip_ratio=0,
-                        with_semantic_seg=True,
-                        ann_file='data/jingwei/jingwei_round1_train_20190619/crop_label',
-                        seg_scale_factor=1,
-                        extra_aug=None,
-                        resize_keep_ratio=True,
-                        test_mode=False)
-    a = data[0]
-    print(a)
+                          img_norm_cfg=dict(mean=[123.675, 116.28, 103.53],
+                                            std=[58.395, 57.12, 57.375],
+                                            to_rgb=True),
+                          multiscale_mode='value',
+                          size_divisor=None,
+                          flip_ratio=0,
+                          with_semantic_seg=True,
+                          ann_file='data/jingwei_round1_train_20190619/crop_label',
+                          seg_scale_factor=1,
+                          extra_aug=None,
+                          resize_keep_ratio=True,
+                          test_mode=False)
