@@ -1,7 +1,10 @@
 import logging
 
+import numpy as np
 import torch.nn as nn
+import cv2 as cv
 
+from mmdet.core import tensor2imgs
 from .. import builder
 from ..registry import DETECTORS
 
@@ -70,3 +73,22 @@ class UNet(nn.Module):
             return self.forward_train(img, img_meta, **kwargs)
         else:
             return self.forward_test(img, img_meta, **kwargs)
+
+    def show_result(self, data, result, img_norm_cfg):
+        img_tensor = data['img'][0]
+        img_metas = data['img_meta'][0].data[0]
+        imgs = tensor2imgs(img_tensor, **img_norm_cfg)
+        assert len(imgs) == len(img_metas)
+
+        result = result.squeeze(0).cpu().numpy()
+        for img, img_meta in zip(imgs, img_metas):
+            h, w, _ = img_meta['img_shape']
+            img_show = img[:h, :w, :]
+            for j in range(1, 3):
+                color_mask = np.random.randint(
+                    0, 256, (1, 3), dtype=np.uint8)
+                mask = result == j
+                img_show[mask] = img_show[mask] * 0.5 + color_mask * 0.5
+                cv.imshow('out', img_show)
+                cv.waitKey(0)
+                cv.destroyAllWindows()
